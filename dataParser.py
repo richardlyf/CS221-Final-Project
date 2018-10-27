@@ -1,3 +1,6 @@
+'''
+The program handles reading CSV file contents. Running the file directly will plot the data in the CSV file
+'''
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,9 +28,33 @@ def getUSCoastline():
 Helper class that reads CSV files
 '''
 class processCSVFile:
-    def __init__(self, labels, fileName):
-        self.labels = labels
+    def __init__(self, fileName):
         self.file_reader = pd.read_csv(fileName)
+
+    '''
+    Returns a list of column names
+    '''
+    def getNames(self):
+        return list(self.file_reader)
+
+    '''
+    Returns the length of column vector
+    '''
+    def getDataSize(self):
+        return len(self.file_reader['ID'])
+
+    '''
+    Returns the entire specified row or rows in the CSV file
+    rowL and rowH determines the lower and upper bound of the rows, inclusive
+    If only rowL is entered, only rowL is returned
+    '''
+    def getRow(self, rowL, rowH = None):
+        if rowH == None:
+            return self.file_reader[rowL : rowL + 1]
+        elif rowH < rowL:
+            print("Bounding error! rowH should be at least equal to rowL")
+            return None
+        return self.file_reader[rowL : rowH + 1]
 
     '''
     Takes in a list of labels and return a list with lists of data corresponding to the labels
@@ -67,8 +94,7 @@ class processCSVFile:
 
 if __name__ == "__main__":
     fileName = "./data/atlantic.csv"
-    labels = ['ID', 'Name', 'Date', 'Time', 'Latitude', 'Longitude']
-    dataFile = processCSVFile(labels, fileName)
+    dataFile = processCSVFile(fileName)
 
     latitude, longitude = dataFile.getLatAndLong()
     t0_lat, t0_long = dataFile.getLandingLatAndLong()
