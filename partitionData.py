@@ -11,28 +11,40 @@ dataFile = processCSVFile(fileName)
 partition = [0.6, 0.2, 0.2]
 
 # Calculate partition size
-H_map = dataFile.getHurricaneDict()
-dataSize = len(H_map)
-trainSize = int(dataSize * partition[0])
-validationSize = int(dataSize * partition[1])
-testSize = dataSize - trainSize - validationSize
+H_map, H_map_order = dataFile.getHurricaneDict()
+HSize = len(H_map)
+trainSize = int(HSize * partition[0])
+validationSize = int(HSize * partition[1])
+testSize = HSize - trainSize - validationSize
 
-# Get all hurricane IDs
-H_ids = np.asarray(H_map.keys())
+print("Train data number hurricanes: " + str(trainSize))
+print("Validation data number hurricanes: " + str(validationSize))
+print("Test data number hurricanes: " + str(testSize))
+
 # Get all rows of data
-rows = np.asarray(dataFile.getRow(0, dataSize))
+rows = np.asarray(dataFile.getRow(0, dataFile.getDataSize()))
 
 # Allocate data by partition
-train_ids = H_ids[:trainSize]
+# Group the hurricane IDs in partitioned sets
+train_ids = H_map_order[:trainSize]
 #Randomize for validation and test
-H_ids = H_ids[trainSize:]
-np.random.shuffle(H_ids)
-validate_ids = H_ids[: validationSize]
-test_ids = H_ids[validationSize:]
+H_map_order = H_map_order[trainSize:]
+np.random.shuffle(H_map_order)
+validate_ids = H_map_order[: validationSize]
+test_ids = H_map_order[validationSize:]
 
+# Get the row indices that correspond to each ID in each set
+train_row_idx = [point for ID in train_ids for point in H_map[ID]]
+valid_row_idx = [point for ID in validate_ids for point in H_map[ID]]
+test_row_idx = [point for ID in test_ids for point in H_map[ID]]
 
+train = rows[train_row_idx]
+validate = rows[valid_row_idx]
+test = rows[test_row_idx]
 
-
+print("Length of training data: " + str(len(train_row_idx)))
+print("Length of validation data: " + str(len(valid_row_idx)))
+print("Length of test data: " + str(len(test_row_idx)))
 
 # Save data to CSV
 headerNames = ','.join(dataFile.getNames())

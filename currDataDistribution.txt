@@ -1,0 +1,6 @@
+Train data number hurricanes: 1088
+Validation data number hurricanes: 362
+Test data number hurricanes: 364
+Length of training data: 29886
+Length of validation data: 9104
+Length of test data: 10113

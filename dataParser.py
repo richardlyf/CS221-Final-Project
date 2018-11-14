@@ -93,15 +93,25 @@ class processCSVFile:
         return np.asarray([float(data[:-1]) for data in dataList])
 
     '''
+    @H_map
     Returns a dictionary where the keys are hurricanes IDs and the value is
     a list of row numbers containing a hurricane's data
+    @H_map_order
+    The map above does not keep track of the order of hurricanes. This
+    is a list of hurricane IDs appearing in order of time
     '''
     def getHurricaneDict(self):
         IDs = self.getRawData(['ID'])[0]
         H_map = defaultdict(list)
+        prev_id = IDs[0]
+        H_map_order = [prev_id]
         for i in range(len(IDs)):
             H_map[IDs[i]].append(i)
-        return H_map
+            if prev_id != IDs[i]:
+                H_map_order.append(IDs[i])
+                prev_id = IDs[i]
+        assert len(H_map.keys()) == len(H_map_order)
+        return H_map, H_map_order
 
 if __name__ == "__main__":
     fileName = "./data/atlantic.csv"

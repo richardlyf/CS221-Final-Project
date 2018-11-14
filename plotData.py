@@ -21,7 +21,7 @@ else:
 dataFile = processCSVFile(fileName)
 
 # Parse hurricane ID to separate hurricanes
-H_map = dataFile.getHurricaneDict()
+H_map, H_map_order = dataFile.getHurricaneDict()
 latitude, longitude = dataFile.getLatAndLong()
 
 # Plot each hurricane
