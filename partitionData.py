@@ -11,19 +11,28 @@ dataFile = processCSVFile(fileName)
 partition = [0.6, 0.2, 0.2]
 
 # Calculate partition size
-dataSize = dataFile.getDataSize()
+H_map = dataFile.getHurricaneDict()
+dataSize = len(H_map)
 trainSize = int(dataSize * partition[0])
 validationSize = int(dataSize * partition[1])
 testSize = dataSize - trainSize - validationSize
 
-# Randomize data
+# Get all hurricane IDs
+H_ids = np.asarray(H_map.keys())
+# Get all rows of data
 rows = np.asarray(dataFile.getRow(0, dataSize))
-np.random.shuffle(rows)
 
 # Allocate data by partition
-train = rows[:trainSize]
-validate = rows[trainSize : trainSize + validationSize]
-test = rows[trainSize + validationSize:]
+train_ids = H_ids[:trainSize]
+#Randomize for validation and test
+H_ids = H_ids[trainSize:]
+np.random.shuffle(H_ids)
+validate_ids = H_ids[: validationSize]
+test_ids = H_ids[validationSize:]
+
+
+
+
 
 # Save data to CSV
 headerNames = ','.join(dataFile.getNames())

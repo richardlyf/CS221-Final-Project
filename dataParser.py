@@ -45,7 +45,7 @@ class processCSVFile:
 
     '''
     Returns the entire specified row or rows in the CSV file
-    rowL and rowH determines the lower and upper bound of the rows, inclusive
+    rowL and rowH determines the lower and upper bound of the rows, rowL inclusive rowH exclusive
     If only rowL is entered, only rowL is returned
     '''
     def getRow(self, rowL, rowH = None):
@@ -54,7 +54,7 @@ class processCSVFile:
         elif rowH < rowL:
             print("Bounding error! rowH should be at least equal to rowL")
             return None
-        return self.file_reader[rowL : rowH + 1]
+        return self.file_reader[rowL : rowH]
 
     '''
     Takes in a list of labels and return a list with lists of data corresponding to the labels
@@ -80,8 +80,8 @@ class processCSVFile:
     '''
     def getLandingLatAndLong(self):
         latitude, longitude = self.getLatAndLong()
-        time = self.getRawData(['Time'])[0]
-        t0_index = np.where(time == 0)[0]
+        landing = self.getRawData(['Event'])[0]
+        t0_index = np.where(landing == ' L')[0]
         t0_lat = np.take(latitude, t0_index)
         t0_long = np.take(longitude, t0_index)
         return t0_lat, t0_long
@@ -91,6 +91,17 @@ class processCSVFile:
     '''
     def stripDirection(self, dataList):
         return np.asarray([float(data[:-1]) for data in dataList])
+
+    '''
+    Returns a dictionary where the keys are hurricanes IDs and the value is
+    a list of row numbers containing a hurricane's data
+    '''
+    def getHurricaneDict(self):
+        IDs = self.getRawData(['ID'])[0]
+        H_map = defaultdict(list)
+        for i in range(len(IDs)):
+            H_map[IDs[i]].append(i)
+        return H_map
 
 if __name__ == "__main__":
     fileName = "./data/atlantic.csv"
