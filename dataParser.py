@@ -113,6 +113,20 @@ class processCSVFile:
         assert len(H_map.keys()) == len(H_map_order)
         return H_map, H_map_order
 
+    '''
+    Similar to the method above.
+    Returns a dictionary where the keys are hurricanes IDs and the value is
+    a list of (latitude, longitude) tuples of the hurricane's position in order as they occur
+    '''
+    def getHurricaneLongAndLat(self):
+        IDs = self.getRawData(['ID'])[0]
+        H_location_map = defaultdict(list)
+        latitude, longitude = self.getLatAndLong()
+        for i in range(len(IDs)):
+            H_map[IDs[i]].append((latitude[i], longitude[i]))
+        return H_location_map
+
+
 if __name__ == "__main__":
     fileName = "./data/atlantic.csv"
     dataFile = processCSVFile(fileName)
