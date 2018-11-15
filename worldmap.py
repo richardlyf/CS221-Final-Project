@@ -24,7 +24,7 @@ class WorldMap:
     '''
     def longToCol(self, longitude):
         val = -longitude * config.GRID_SIZE_SCALE #Negative from longitude being negative in our area of concern
-        assert(val >= 0 and val < self.lat_span)
+        assert(val >= 0 and val < self.long_span)
         return val
 
     '''
