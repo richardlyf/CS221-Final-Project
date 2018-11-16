@@ -6,7 +6,7 @@ FUTURE_VISION = 3
 PAST_VISION = 3
 
 #How much our grid is scaled relative to latitudes and longitudes (10 means 50.5W becomes index 505 in our grid)
-GRID_SIZE_SCALE = 10
+GRID_SIZE_SCALE = 2
 
 LATITUDE_RANGE = 100
 

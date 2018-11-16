@@ -7,15 +7,15 @@ class WorldMap:
     lat_span, long_span indicates the size of the world
     '''
     def __init__(self):
-        self.lat_span = config.LATITUDE_RANGE*config.GRID_SIZE_SCALE
-        self.long_span = config.LONGITUDE_RANGE*config.GRID_SIZE_SCALE
+        self.lat_span = int(config.LATITUDE_RANGE*10/config.GRID_SIZE_SCALE)
+        self.long_span = int(config.LONGITUDE_RANGE*10/config.GRID_SIZE_SCALE)
         self.worldGrid = np.zeros((self.lat_span, self.long_span))
 
     '''
     Convert latitude to row in grid representation
     '''
     def latToRow(self, latitude):
-        val = latitude * config.GRID_SIZE_SCALE
+        val = int(latitude * 10/config.GRID_SIZE_SCALE)
         assert(val >= 0 and val < self.lat_span)
         return val
 
@@ -23,7 +23,7 @@ class WorldMap:
     Convert longitude to col in grid representation
     '''
     def longToCol(self, longitude):
-        val = -longitude * config.GRID_SIZE_SCALE #Negative from longitude being negative in our area of concern
+        val = int(-longitude * 10/config.GRID_SIZE_SCALE) #Negative from longitude being negative in our area of concern
         assert(val >= 0 and val < self.long_span)
         return val
 
