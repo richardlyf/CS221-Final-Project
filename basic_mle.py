@@ -7,6 +7,7 @@ import numpy as np
 import config
 import worldmap
 from collections import defaultdict
+import random
 
 '''
 Takes in the training data of each hurricane and computes returns the probability table
@@ -85,8 +86,10 @@ def predictAndEval(worldMap, dataFile, p_table):
 
         avg_hurricane_error = total_error / prediction_count
         hurricane_errors.append(avg_hurricane_error)
+        print ("Hurricane ID " + key + " overall error per prediction is " + str(avg_hurricane_error))
 
     total_avg_error = sum(hurricane_errors) / len(hurricane_errors)
+    print ("Overall error per prediction averaged across all hurricanes: " + str(total_avg_error))
 
 '''
 Takes in a list of predicted values and a list of target values
@@ -96,6 +99,7 @@ def calculateError(prediction, target):
     total = 0
     for i in range(len(prediction)):
         total += euclideanDist(prediction[i], target[i])
+    return total
 
 '''
 Accepts pt1 and pt2 as coordinate tuples
@@ -144,8 +148,9 @@ valid_df = processCSVFile(valid_fn)
 test_df = processCSVFile(test_fn)
 
 table = train(worldmap, train_df)
-ev_k = table.keys()
-ev = table[((220, 338), (237, 330), (260, 332))]
-k = ev.keys()
+predictAndEval(worldmap, train_df, table)
+#ev_k = table.keys()
+#ev = table[((220, 338), (237, 330), (260, 332))]
+#k = ev.keys()
 #print(list(k)[:8])
-print(table)
+#print(table)
