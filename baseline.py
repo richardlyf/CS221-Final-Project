@@ -48,8 +48,8 @@ def baseline(worldmap, hurricanes):
             aggregateErrors.append(totalError/predictionsMade)
 
     #Average out errors across all hurricanes
-    overallError = sum(aggregateErrors)/len(aggregateErrors)
-    print ("Overall error per prediction averaged across all hurricanes: " + str(overallError))
+    overallError = sum(aggregateErrors) / len(aggregateErrors) / config.FUTURE_VISION
+    print ("Overall error per prediction averaged across " + str(len(aggregateErrors)) + " hurricanes: " + str(overallError))
     return overallError
 
 
@@ -73,5 +73,5 @@ test_df = processCSVFile(test_fn)
 #Which data for the baseline to run on
 
 #baseline(worldmap, train_df.getHurricaneLatAndLong())
-#baseline(worldmap, valid_df.getHurricaneLatAndLong())
-baseline(worldmap, test_df.getHurricaneLatAndLong())
+baseline(worldmap, valid_df.getHurricaneLatAndLong())
+#baseline(worldmap, test_df.getHurricaneLatAndLong())

@@ -67,12 +67,25 @@ def predictAndEval(worldMap, dataFile, p_table):
         for i in range(config.PAST_VISION, len(hurricane) - config.FUTURE_VISION):
             predicted_points = []
 
+            #####
+            skip = False
+            #####
+
             # Form the prior
             prior_key = tuple([(worldmap.latToRow(hurricane[n][0]), worldmap.longToCol(hurricane[n][1])) for n in range(i - config.PAST_VISION, i)])
             # Predict FUTURE_VISION points given a prior
             for shift in range(config.FUTURE_VISION):
                 # Pick next potential point from the probability distribution
                 evidence = p_table[prior_key]
+
+                #########TEMP SOLUTION TO EMPTY WEIGHT###########
+                if len(evidence) == 0:
+                    prediction_count -= 1
+                    skip = True
+                    break;
+
+                #################################################
+
                 prediction = weightedRandomChoice(evidence)
                 predicted_points.append(prediction)
                 # Update prior
@@ -80,16 +93,26 @@ def predictAndEval(worldMap, dataFile, p_table):
                 _new_prior.append(prediction)
                 prior_key = tuple(_new_prior)
 
+            #################################################
+            if skip:
+                continue
+            #################################################
+
             # Use the list of predicted_points given prior to calculate error and add to overall hurricane error
             target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
             total_error += calculateError(predicted_points, target_points)
+
+        #####
+        if prediction_count == 0:
+            continue
+        #####
 
         avg_hurricane_error = total_error / prediction_count
         hurricane_errors.append(avg_hurricane_error)
         print ("Hurricane ID " + key + " overall error per prediction is " + str(avg_hurricane_error))
 
-    total_avg_error = sum(hurricane_errors) / len(hurricane_errors)
-    print ("Overall error per prediction averaged across all hurricanes: " + str(total_avg_error))
+    total_avg_error = sum(hurricane_errors) / len(hurricane_errors) / config.FUTURE_VISION
+    print ("Overall error per prediction averaged across " + str(len(hurricane_errors)) + " hurricanes: " + str(total_avg_error))
 
 '''
 Takes in a list of predicted values and a list of target values
@@ -148,9 +171,4 @@ valid_df = processCSVFile(valid_fn)
 test_df = processCSVFile(test_fn)
 
 table = train(worldmap, train_df)
-predictAndEval(worldmap, train_df, table)
-#ev_k = table.keys()
-#ev = table[((220, 338), (237, 330), (260, 332))]
-#k = ev.keys()
-#print(list(k)[:8])
-#print(table)
+predictAndEval(worldmap, valid_df, table)

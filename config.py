@@ -8,6 +8,6 @@ PAST_VISION = 2
 #How much our grid is scaled relative to latitudes and longitudes (10 means 50.5W becomes index 505 in our grid)
 GRID_SIZE_SCALE = 5
 
-LATITUDE_RANGE = 100
+LATITUDE_RANGE = 150
 
 LONGITUDE_RANGE = 150
