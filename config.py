@@ -8,6 +8,11 @@ PAST_VISION = 2
 #How much our grid is scaled relative to latitudes and longitudes (10 means 50.5W becomes index 505 in our grid)
 GRID_SIZE_SCALE = 5
 
+#Range from 0 to this value of latitudes
 LATITUDE_RANGE = 150
 
+#Range from 0 to this value of longitudes
 LONGITUDE_RANGE = 150
+
+#Number of particles to simulate for evaluating our Bayes net
+PARTICLE_AMOUNT = 20

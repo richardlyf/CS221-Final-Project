@@ -65,42 +65,56 @@ def predictAndEval(worldMap, dataFile, p_table):
         prediction_count = len(hurricane) - config.FUTURE_VISION - config.PAST_VISION
         # Look at n PAST_VISION points and make a prediction about the next FUTURE_VISION point
         for i in range(config.PAST_VISION, len(hurricane) - config.FUTURE_VISION):
-            predicted_points = []
-
-            #####
+            #Simulate particles as hurricanes to more robustly evaluate Bayes net
+            ######################################################
             skip = False
-            #####
+            ######################################################
 
-            # Form the prior
-            prior_key = tuple([(worldmap.latToRow(hurricane[n][0]), worldmap.longToCol(hurricane[n][1])) for n in range(i - config.PAST_VISION, i)])
-            # Predict FUTURE_VISION points given a prior
-            for shift in range(config.FUTURE_VISION):
-                # Pick next potential point from the probability distribution
-                evidence = p_table[prior_key]
+            particle_sum_error = 0
+            for particle in range(config.PARTICLE_AMOUNT):
+                predicted_points = []
 
-                #########TEMP SOLUTION TO EMPTY WEIGHT###########
-                if len(evidence) == 0:
-                    prediction_count -= 1
-                    skip = True
-                    break;
+                # Form the prior
+                prior_key = tuple([(worldmap.latToRow(hurricane[n][0]), worldmap.longToCol(hurricane[n][1])) for n in range(i - config.PAST_VISION, i)])
+                # Predict FUTURE_VISION points given a prior
+                for shift in range(config.FUTURE_VISION):
+                    # Pick next potential point from the probability distribution
+                    evidence = p_table[prior_key]
+
+                    #########TEMP SOLUTION TO EMPTY WEIGHT###########
+                    if len(evidence) == 0:
+                        #prediction_count -= 1 #TODO is this -= 1 or actually just 0 now?  with -1 doesn't make sense as
+                                                #you're discarding the rest of the points which is more than 1 discarded
+                        prediction_count = 0
+                        skip = True
+                        break;
+                    #################################################
+
+                    prediction = weightedRandomChoice(evidence)
+                    predicted_points.append(prediction)
+                    # Update prior
+                    _new_prior = list(prior_key)[1:]
+                    _new_prior.append(prediction)
+                    prior_key = tuple(_new_prior)
 
                 #################################################
+                if skip:
+                    #continue
+                    break
+                #################################################
 
-                prediction = weightedRandomChoice(evidence)
-                predicted_points.append(prediction)
-                # Update prior
-                _new_prior = list(prior_key)[1:]
-                _new_prior.append(prediction)
-                prior_key = tuple(_new_prior)
+                # Use the list of predicted_points given prior to calculate particle error
+                target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
+                particle_sum_error += calculateError(predicted_points, target_points)
+
 
             #################################################
             if skip:
-                continue
+                break
             #################################################
 
-            # Use the list of predicted_points given prior to calculate error and add to overall hurricane error
-            target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
-            total_error += calculateError(predicted_points, target_points)
+            #Add the particles' average error to total error
+            total_error += particle_sum_error / config.PARTICLE_AMOUNT
 
         #####
         if prediction_count == 0:
