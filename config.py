@@ -16,3 +16,9 @@ LONGITUDE_RANGE = 150
 
 #Number of particles to simulate for evaluating our Bayes net
 PARTICLE_AMOUNT = 20
+
+#Range of the gaussian for Laplace smoothing of Bayes net
+RANGE = 15
+
+#Mean of the gaussian for Laplace smoothing of Bayes net
+MEAN = 3

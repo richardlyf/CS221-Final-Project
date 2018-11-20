@@ -53,25 +53,40 @@ def train(worldmap, dataFile):
     return p_table
 
 '''
+Takes in a probability table to modify
+Takes in the prior and the next_point
+Adds a gaussian distribution to the probability table centered at next_point given the prior
+The config file specifies the standard diviation estimate(given range/threshold) and mean of the gaussian
+'''
+def gaussianLaplacian(p_table, curr_key, prior_key):
+    pass
+
+
+
+'''
 Takes in a probability table and test data and computes the predicted data points.
 Evaluates the predicted data points and prints out error.
 '''
 def predictAndEval(worldMap, dataFile, p_table):
     hurricanes = dataFile.getHurricaneLatAndLong()
     hurricane_errors = []
+    total_num_predictions = 0
+    # For each hurricane
     for key in hurricanes:
         hurricane = hurricanes[key]
         total_error = 0
-        prediction_count = len(hurricane) - config.FUTURE_VISION - config.PAST_VISION
-        # Look at n PAST_VISION points and make a prediction about the next FUTURE_VISION point
+        prediction_count = (len(hurricane) - config.FUTURE_VISION - config.PAST_VISION) * config.PARTICLE_AMOUNT
+        # Look at n PAST_VISION points and make a prediction about the next FUTURE_VISION point(s)
         for i in range(config.PAST_VISION, len(hurricane) - config.FUTURE_VISION):
-            #Simulate particles as hurricanes to more robustly evaluate Bayes net
-            ######################################################
-            skip = False
-            ######################################################
-
             particle_sum_error = 0
+
+            # For each particle at this time step
             for particle in range(config.PARTICLE_AMOUNT):
+                #Simulate particles as hurricanes to more robustly evaluate Bayes net
+                ######################################################
+                skip = False
+                ######################################################
+
                 predicted_points = []
 
                 # Form the prior
@@ -83,9 +98,9 @@ def predictAndEval(worldMap, dataFile, p_table):
 
                     #########TEMP SOLUTION TO EMPTY WEIGHT###########
                     if len(evidence) == 0:
-                        #prediction_count -= 1 #TODO is this -= 1 or actually just 0 now?  with -1 doesn't make sense as
+                        prediction_count -= 1 #TODO is this -= 1 or actually just 0 now?  with -1 doesn't make sense as
                                                 #you're discarding the rest of the points which is more than 1 discarded
-                        prediction_count = 0
+                        #prediction_count = 0
                         skip = True
                         break;
                     #################################################
@@ -99,34 +114,30 @@ def predictAndEval(worldMap, dataFile, p_table):
 
                 #################################################
                 if skip:
-                    #continue
-                    break
+                    continue
+                    #break
                 #################################################
 
                 # Use the list of predicted_points given prior to calculate particle error
                 target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
                 particle_sum_error += calculateError(predicted_points, target_points)
 
-
-            #################################################
-            if skip:
-                break
-            #################################################
-
             #Add the particles' average error to total error
-            total_error += particle_sum_error / config.PARTICLE_AMOUNT
+            total_error += particle_sum_error
 
         #####
         if prediction_count == 0:
             continue
         #####
 
+        total_num_predictions += prediction_count
         avg_hurricane_error = total_error / prediction_count
         hurricane_errors.append(avg_hurricane_error)
         print ("Hurricane ID " + key + " overall error per prediction is " + str(avg_hurricane_error))
 
     total_avg_error = sum(hurricane_errors) / len(hurricane_errors) / config.FUTURE_VISION
-    print ("Overall error per prediction averaged across " + str(len(hurricane_errors)) + " hurricanes: " + str(total_avg_error))
+    print ("Overall error per prediction averaged across " + str(len(hurricane_errors)) + " hurricanes and "
+            + str(total_num_predictions) + " predictions: " + str(total_avg_error))
 
 '''
 Takes in a list of predicted values and a list of target values
