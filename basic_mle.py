@@ -8,6 +8,7 @@ import config
 import worldmap
 from collections import defaultdict
 import random
+import scipy.stats as st
 
 '''
 Takes in the training data of each hurricane and computes returns the probability table
@@ -26,6 +27,11 @@ def train(worldmap, dataFile):
     '''
     hurricanes = dataFile.getHurricaneLatAndLong()
     p_table = defaultdict(dict)
+
+    #Dictionary storing whether we already added Laplacian or not for (prior, current) as key, with
+    #a value of 1 if already added Laplace or it's not in the dictionary if not
+    laplaceAlreadyAdded = defaultdict(int)
+
     # Count
     for key in hurricanes:
         hurricane = hurricanes[key]
@@ -41,6 +47,10 @@ def train(worldmap, dataFile):
                 evidence_counts[curr_key] += 1
             else:
                 evidence_counts[curr_key] = 1
+            if (prior_key, curr_key) not in laplaceAlreadyAdded:
+                gaussianLaplacian(p_table, prior_key, curr_key)
+                #Mark this as already added Laplacian to avoid repeat adding #TODO check
+                laplaceAlreadyAdded[(prior_key, curr_key)] = 1
 
     # Normalize
     prior_keys = p_table.keys()
@@ -58,9 +68,25 @@ Takes in the prior and the next_point
 Adds a gaussian distribution to the probability table centered at next_point given the prior
 The config file specifies the standard diviation estimate(given range/threshold) and mean of the gaussian
 '''
-def gaussianLaplacian(p_table, curr_key, prior_key):
-    pass
+def gaussianLaplacian(p_table, prior_key, curr_key = None): #TODO check
+    #For all values(x, y) in our dictionary within LAPLACE_RADIUS
+    for deltaRow in range (-config.LAPLACE_RADIUS, config.LAPLACE_RADIUS):
+        for deltaCol in range (-config.LAPLACE_RADIUS, config.LAPLACE_RADIUS):
+            #Ensure circular area of points that we're going to add Laplacian to
+            if (euclideanDist((deltaRow, deltaCol), (0, 0)) > config.LAPLACE_RADIUS):
+                continue
 
+            new_key = (curr_key[0] + deltaRow, curr_key[1] + deltaCol)
+
+            #Gaussian value as a 0 centered, with 1 stdev as LAPLACE_RADIUS.  We're taking the probability
+            #of our deviation given by the Euclidean distance of the deltas with respect to the origin
+            #We then multiply the entire Gaussian by a scalar defined by LAPLACE_LAMBDA
+            laplaceValue = scipy.stats.norm(0, config.LAPLACE_RADIUS).pdf(euclideanDist((deltaRow, deltaCol), (0, 0))) * config.LAPLACE_LAMBDA
+
+            if new_key in p_table[prior_key]:
+                p_table[prior_key][new_key] += laplaceValue
+            else:
+                p_table[prior_key][new_key] = laplaceValue
 
 
 '''
@@ -98,6 +124,22 @@ def predictAndEval(worldMap, dataFile, p_table):
 
                     #########TEMP SOLUTION TO EMPTY WEIGHT###########
                     if len(evidence) == 0:
+                        #TODO check
+
+                        #We have nothing for the p_table entry, so we should add
+                        #Laplace right away to calculate next point.  Default is a linear
+                        #predictor.
+
+                        #Linear predictor for extrapolating from at least 2 prior key points
+                        assert(len(prior_key) >= 2)
+                        curr_key = (2*prior_key[-1][0] - prior_key[-2][0], 2*prior_key[-1][1] - prior_key[-2][1])
+                        gaussianLaplacian(p_table, prior_key, curr_key)
+
+
+
+
+
+
                         prediction_count -= 1 #TODO is this -= 1 or actually just 0 now?  with -1 doesn't make sense as
                                                 #you're discarding the rest of the points which is more than 1 discarded
                         #prediction_count = 0
