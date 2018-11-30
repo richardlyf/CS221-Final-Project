@@ -8,6 +8,7 @@ import config
 import worldmap
 from collections import defaultdict
 import random
+import scipy
 import scipy.stats as st
 
 '''
@@ -109,9 +110,6 @@ def predictAndEval(worldMap, dataFile, p_table):
             # For each particle at this time step
             for particle in range(config.PARTICLE_AMOUNT):
                 #Simulate particles as hurricanes to more robustly evaluate Bayes net
-                ######################################################
-                skip = False
-                ######################################################
 
                 predicted_points = []
 
@@ -122,9 +120,8 @@ def predictAndEval(worldMap, dataFile, p_table):
                     # Pick next potential point from the probability distribution
                     evidence = p_table[prior_key]
 
-                    #########TEMP SOLUTION TO EMPTY WEIGHT###########
+                    #If haven't seen before, use Laplace to crudely estimate it
                     if len(evidence) == 0:
-                        #TODO check
 
                         #We have nothing for the p_table entry, so we should add
                         #Laplace right away to calculate next point.  Default is a linear
@@ -134,18 +131,11 @@ def predictAndEval(worldMap, dataFile, p_table):
                         assert(len(prior_key) >= 2)
                         curr_key = (2*prior_key[-1][0] - prior_key[-2][0], 2*prior_key[-1][1] - prior_key[-2][1])
                         gaussianLaplacian(p_table, prior_key, curr_key)
+                        #Normalize Laplacian
+                        evidence_counts = p_table[prior_key]
+                        total = sum(evidence_counts.values())
+                        p_table[prior_key] = {key : value / total for key, value in evidence_counts.items()}
 
-
-
-
-
-
-                        prediction_count -= 1 #TODO is this -= 1 or actually just 0 now?  with -1 doesn't make sense as
-                                                #you're discarding the rest of the points which is more than 1 discarded
-                        #prediction_count = 0
-                        skip = True
-                        break;
-                    #################################################
 
                     prediction = weightedRandomChoice(evidence)
                     predicted_points.append(prediction)
@@ -154,12 +144,6 @@ def predictAndEval(worldMap, dataFile, p_table):
                     _new_prior.append(prediction)
                     prior_key = tuple(_new_prior)
 
-                #################################################
-                if skip:
-                    continue
-                    #break
-                #################################################
-
                 # Use the list of predicted_points given prior to calculate particle error
                 target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
                 particle_sum_error += calculateError(predicted_points, target_points)
@@ -167,10 +151,8 @@ def predictAndEval(worldMap, dataFile, p_table):
             #Add the particles' average error to total error
             total_error += particle_sum_error
 
-        #####
         if prediction_count == 0:
             continue
-        #####
 
         total_num_predictions += prediction_count
         avg_hurricane_error = total_error / prediction_count

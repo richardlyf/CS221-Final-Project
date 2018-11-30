@@ -22,12 +22,4 @@ PARTICLE_AMOUNT = 20
 LAPLACE_RADIUS = 2
 
 #How much we add in our Laplacian
-LAPLACE_LAMBDA = 0.5
-
-
-
-
-
-
-#Range of the gaussian for Laplace smoothing of Bayes net
-RANGE = 15
+LAPLACE_LAMBDA = 0.02
