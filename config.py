@@ -23,3 +23,6 @@ LAPLACE_RADIUS = 2
 
 #How much we add in our Laplacian
 LAPLACE_LAMBDA = 0.02
+
+#If Laplacian will be used in the calculations
+USE_LAPLACE = True

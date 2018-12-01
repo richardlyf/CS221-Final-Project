@@ -48,6 +48,9 @@ def train(worldmap, dataFile):
                 evidence_counts[curr_key] += 1
             else:
                 evidence_counts[curr_key] = 1
+
+            if not config.USE_LAPLACE: continue
+
             if (prior_key, curr_key) not in laplaceAlreadyAdded:
                 gaussianLaplacian(p_table, prior_key, curr_key)
                 #Mark this as already added Laplacian to avoid repeat adding #TODO check
@@ -74,7 +77,8 @@ def gaussianLaplacian(p_table, prior_key, curr_key = None): #TODO check
     for deltaRow in range (-config.LAPLACE_RADIUS, config.LAPLACE_RADIUS):
         for deltaCol in range (-config.LAPLACE_RADIUS, config.LAPLACE_RADIUS):
             #Ensure circular area of points that we're going to add Laplacian to
-            if (euclideanDist((deltaRow, deltaCol), (0, 0)) > config.LAPLACE_RADIUS):
+            dist = euclideanDist((deltaRow, deltaCol), (0, 0))
+            if (dist > config.LAPLACE_RADIUS):
                 continue
 
             new_key = (curr_key[0] + deltaRow, curr_key[1] + deltaCol)
@@ -82,7 +86,7 @@ def gaussianLaplacian(p_table, prior_key, curr_key = None): #TODO check
             #Gaussian value as a 0 centered, with 1 stdev as LAPLACE_RADIUS.  We're taking the probability
             #of our deviation given by the Euclidean distance of the deltas with respect to the origin
             #We then multiply the entire Gaussian by a scalar defined by LAPLACE_LAMBDA
-            laplaceValue = scipy.stats.norm(0, config.LAPLACE_RADIUS).pdf(euclideanDist((deltaRow, deltaCol), (0, 0))) * config.LAPLACE_LAMBDA
+            laplaceValue = scipy.stats.norm(0, config.LAPLACE_RADIUS).pdf(dist) * config.LAPLACE_LAMBDA
 
             if new_key in p_table[prior_key]:
                 p_table[prior_key][new_key] += laplaceValue
@@ -122,7 +126,7 @@ def predictAndEval(worldMap, dataFile, p_table):
 
                     #If haven't seen before, use Laplace to crudely estimate it
                     if len(evidence) == 0:
-
+                        if not config.USE_LAPLACE: continue
                         #We have nothing for the p_table entry, so we should add
                         #Laplace right away to calculate next point.  Default is a linear
                         #predictor.
