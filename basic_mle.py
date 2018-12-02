@@ -52,8 +52,9 @@ def train(worldmap, dataFile):
             if not config.USE_LAPLACE: continue
 
             if (prior_key, curr_key) not in laplaceAlreadyAdded:
+                #pass
                 gaussianLaplacian(p_table, prior_key, curr_key)
-                #Mark this as already added Laplacian to avoid repeat adding #TODO check
+                #Mark this as already added Laplacian to avoid repeat adding
                 laplaceAlreadyAdded[(prior_key, curr_key)] = 1
 
     # Normalize
@@ -72,7 +73,7 @@ Takes in the prior and the next_point
 Adds a gaussian distribution to the probability table centered at next_point given the prior
 The config file specifies the standard diviation estimate(given range/threshold) and mean of the gaussian
 '''
-def gaussianLaplacian(p_table, prior_key, curr_key = None): #TODO check
+def gaussianLaplacian(p_table, prior_key, curr_key = None):
     #For all values(x, y) in our dictionary within LAPLACE_RADIUS
     for deltaRow in range (-config.LAPLACE_RADIUS, config.LAPLACE_RADIUS):
         for deltaCol in range (-config.LAPLACE_RADIUS, config.LAPLACE_RADIUS):
@@ -86,7 +87,7 @@ def gaussianLaplacian(p_table, prior_key, curr_key = None): #TODO check
             #Gaussian value as a 0 centered, with 1 stdev as LAPLACE_RADIUS.  We're taking the probability
             #of our deviation given by the Euclidean distance of the deltas with respect to the origin
             #We then multiply the entire Gaussian by a scalar defined by LAPLACE_LAMBDA
-            laplaceValue = scipy.stats.norm(0, config.LAPLACE_RADIUS).pdf(dist) * config.LAPLACE_LAMBDA
+            laplaceValue = scipy.stats.norm(0, config.LAPLACE_STDEV_FACTOR*config.LAPLACE_RADIUS).pdf(dist) * config.LAPLACE_LAMBDA
 
             if new_key in p_table[prior_key]:
                 p_table[prior_key][new_key] += laplaceValue

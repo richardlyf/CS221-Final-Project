@@ -6,7 +6,7 @@ FUTURE_VISION = 3
 #Past vision should be at least 2.
 PAST_VISION = 2
 
-#How much our grid is scaled relative to latitudes and longitudes (10 means 50.5W becomes index 505 in our grid)
+#How much our grid is scaled relative to latitudes and longitudes (how many latitude/longitudes in a grid box)
 GRID_SIZE_SCALE = 5
 
 #Range from 0 to this value of latitudes
@@ -20,6 +20,9 @@ PARTICLE_AMOUNT = 20
 
 #Radius of the basic Laplacian, in world grid row/col
 LAPLACE_RADIUS = 2
+
+#How much to multiply the LAPLACE_RADIUS by to get the stdev for Gaussian function
+LAPLACE_STDEV_FACTOR = 1
 
 #How much we add in our Laplacian
 LAPLACE_LAMBDA = 0.02
