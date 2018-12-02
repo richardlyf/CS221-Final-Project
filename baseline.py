@@ -14,6 +14,7 @@ def baseline(worldmap, hurricanes):
 
     #Make list of error/predictions made
     aggregateErrors = []
+    totalPredictionsMade = 0
     #For each hurricane in datafile
     for key in hurricanes:
         #Hurricane: is a data structure that contains [[lat, long], [lat, long], [lat, long]] in correct time steps (row, col order)
@@ -45,11 +46,12 @@ def baseline(worldmap, hurricanes):
         #Print out and add this hurricane's error per prediction to our list
         if predictionsMade > 0:
             print ("Hurricane ID " + key + " overall error per prediction is " + str(totalError/predictionsMade))
+            totalPredictionsMade += predictionsMade
             aggregateErrors.append(totalError/predictionsMade)
 
     #Average out errors across all hurricanes
     overallError = sum(aggregateErrors) / len(aggregateErrors) / config.FUTURE_VISION
-    print ("Overall error per prediction averaged across " + str(len(aggregateErrors)) + " hurricanes: " + str(overallError))
+    print ("Overall error per prediction averaged across " + str(len(aggregateErrors)) + " hurricanes and " + str(totalPredictionsMade) + " predictions: " + str(overallError))
     return overallError
 
 

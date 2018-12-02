@@ -28,4 +28,4 @@ LAPLACE_STDEV_FACTOR = 1
 LAPLACE_LAMBDA = 0.02
 
 #If Laplacian will be used in the calculations
-USE_LAPLACE = True
+USE_LAPLACE = False

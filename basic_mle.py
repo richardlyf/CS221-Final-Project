@@ -108,6 +108,9 @@ def predictAndEval(worldMap, dataFile, p_table):
         hurricane = hurricanes[key]
         total_error = 0
         prediction_count = (len(hurricane) - config.FUTURE_VISION - config.PAST_VISION) * config.PARTICLE_AMOUNT
+        # If the hurricane less or equal to FUTURE_VISION + PAST_VISION number of points, there's nothing to predict, skip this hurricane
+        if prediction_count <= 0:
+            continue
         # Look at n PAST_VISION points and make a prediction about the next FUTURE_VISION point(s)
         for i in range(config.PAST_VISION, len(hurricane) - config.FUTURE_VISION):
             particle_sum_error = 0
@@ -127,7 +130,9 @@ def predictAndEval(worldMap, dataFile, p_table):
 
                     #If haven't seen before, use Laplace to crudely estimate it
                     if len(evidence) == 0:
-                        if not config.USE_LAPLACE: continue
+                        if not config.USE_LAPLACE:
+                            prediction_count -= 1
+                            break
                         #We have nothing for the p_table entry, so we should add
                         #Laplace right away to calculate next point.  Default is a linear
                         #predictor.
@@ -225,4 +230,4 @@ valid_df = processCSVFile(valid_fn)
 test_df = processCSVFile(test_fn)
 
 table = train(worldmap, train_df)
-predictAndEval(worldmap, valid_df, table)
+predictAndEval(worldmap, test_df, table)
