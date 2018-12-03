@@ -27,17 +27,20 @@ latitude, longitude = dataFile.getLatAndLong()
 # Plot each hurricane
 num = len(H_map)
 print("Displaying " + str(num) + " number of hurricane paths")
+
 for key in H_map:
     points = H_map[key]
     x = longitude[points]
     y = latitude[points]
+    coast_x, coast_y = getUSCoastline()
 
     plt.xlim(-120, 0)
     plt.ylim(0, 100)
     plt.ylabel("latitude")
     plt.xlabel("longitude")
-    # Plots all coords blue, then first landing coords green, then US coastliner red
-    plt.plot(x, y, 'bo')
+
+    # Plots all coords blue
+    plt.plot(x, y, 'bo', coast_x, coast_y, 'r')
     plt.show(block=False)
     plt.pause(1)
-    plt.close()
+    plt.clf()

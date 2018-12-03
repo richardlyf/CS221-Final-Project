@@ -10,6 +10,7 @@ from collections import defaultdict
 import random
 import scipy
 import scipy.stats as st
+import matplotlib.pyplot as plt
 
 '''
 Takes in the training data of each hurricane and computes returns the probability table
@@ -146,7 +147,6 @@ def predictAndEval(worldMap, dataFile, p_table):
                         total = sum(evidence_counts.values())
                         p_table[prior_key] = {key : value / total for key, value in evidence_counts.items()}
 
-
                     prediction = weightedRandomChoice(evidence)
                     predicted_points.append(prediction)
                     # Update prior
@@ -156,7 +156,12 @@ def predictAndEval(worldMap, dataFile, p_table):
 
                 # Use the list of predicted_points given prior to calculate particle error
                 target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
+                if len(predicted_points) != len(target_points): continue
                 particle_sum_error += calculateError(predicted_points, target_points)
+
+                # Display the predicted path if VISUAL flag is True, per path and particle
+                if config.VISUAL:
+                    displayPrediction(hurricane, i, predicted_points)
 
             #Add the particles' average error to total error
             total_error += particle_sum_error
@@ -214,6 +219,53 @@ def weightedRandomChoice(weightDict):
             return elems[chosenIndex]
     raise Exception('Should not reach here')
 
+'''
+Displays the path of the hurricane in blue, the predicted future points in red, and actual future points in green
+hurricane - a list of coordinates of a given hurricane
+pathEnd - index of where the prediction starts. range(0, pathEnd) should be the hurricane trajectory that's already observed
+predicted_points - a list of coordinates of predicted future points
+'''
+def displayPrediction(hurricane, pathEnd, predicted_points):
+    coast_x, coast_y = getUSCoastline()
+
+    hurricane = np.array(hurricane)
+    predicted_points = np.array(predicted_points)
+
+    observed_y = hurricane[:pathEnd, 0]
+    observed_x = hurricane[:pathEnd, 1]
+
+    pred_y = predicted_points[:, 0]
+    pred_x = predicted_points[:, 1]
+    pred_y = worldmap.rowToLat(pred_y)
+    pred_x = worldmap.colToLong(pred_x)
+
+    true_y = hurricane[pathEnd: pathEnd + config.FUTURE_VISION, 0]
+    true_x = hurricane[pathEnd: pathEnd + config.FUTURE_VISION, 1]
+
+    print(pred_x, pred_y)
+    print(true_x, true_y)
+    print()
+    '''
+    observed_x = [hurricane[i][0] for i in range(pathEnd)]
+    observed_y = [hurricane[i][1] for i in range(pathEnd)]
+
+    pred_x = [predicted_points[i][0] for i in range(len(predicted_points))]
+    pred_x = [predicted_points[i][1] for i in range(len(predicted_points))]
+    true_x = [hurricane[i][0] for i in range(pathEnd, pathEnd + config.FUTURE_VISION)]
+    true_x = [hurricane[i][1] for i in range(pathEnd, pathEnd + config.FUTURE_VISION)]
+
+    '''
+
+    plt.xlim(-120, 0)
+    plt.ylim(0, 100)
+    plt.ylabel("latitude")
+    plt.xlabel("longitude")
+
+    # Plots all coords blue
+    plt.plot(observed_x, observed_y, 'bo', true_x, true_y, 'go', pred_x, pred_y, 'ro', coast_x, coast_y, 'r')
+    plt.show(block=False)
+    plt.pause(0.005)
+    plt.clf()
 
 
 #Initialize world map
@@ -229,5 +281,10 @@ train_df = processCSVFile(train_fn)
 valid_df = processCSVFile(valid_fn)
 test_df = processCSVFile(test_fn)
 
-table = train(worldmap, train_df)
+table = {}
+if not config.PRETRAINED:
+    table = train(worldmap, train_df)
+    np.save('trained_weights.npy', table)
+else:
+    table = np.load('trained_weights.npy').item()
 predictAndEval(worldmap, test_df, table)

@@ -13,6 +13,7 @@ class WorldMap:
 
     '''
     Convert latitude to row in grid representation
+    Loses precision
     '''
     def latToRow(self, latitude):
         val = int(latitude/config.GRID_SIZE_SCALE)
@@ -21,11 +22,24 @@ class WorldMap:
 
     '''
     Convert longitude to col in grid representation
+    Loses precision
     '''
     def longToCol(self, longitude):
         val = int(-longitude/config.GRID_SIZE_SCALE) #Negative from longitude being negative in our area of concern
         assert(val >= 0 and val < self.long_span)
         return val
+
+    '''
+    Convert row in grid to latitude. Lower precision due to latToRow
+    '''
+    def rowToLat(self, row):
+        return row * config.GRID_SIZE_SCALE
+
+    '''
+    Convert col in grid to longitude. Lower precision due to longToCol
+    '''
+    def colToLong(self, col):
+        return -1 * col * config.GRID_SIZE_SCALE
 
     '''
     Resets the grid of all values

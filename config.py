@@ -28,4 +28,10 @@ LAPLACE_STDEV_FACTOR = 1
 LAPLACE_LAMBDA = 0.02
 
 #If Laplacian will be used in the calculations
-USE_LAPLACE = False
+USE_LAPLACE = True
+
+#If predicted results will be displayed
+VISUAL = True
+
+#Loads pretrained MLE probability table if True
+PRETRAINED = True
