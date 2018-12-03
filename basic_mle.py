@@ -245,19 +245,10 @@ def displayPrediction(hurricane, pathEnd, predicted_points):
     print(pred_x, pred_y)
     print(true_x, true_y)
     print()
-    '''
-    observed_x = [hurricane[i][0] for i in range(pathEnd)]
-    observed_y = [hurricane[i][1] for i in range(pathEnd)]
 
-    pred_x = [predicted_points[i][0] for i in range(len(predicted_points))]
-    pred_x = [predicted_points[i][1] for i in range(len(predicted_points))]
-    true_x = [hurricane[i][0] for i in range(pathEnd, pathEnd + config.FUTURE_VISION)]
-    true_x = [hurricane[i][1] for i in range(pathEnd, pathEnd + config.FUTURE_VISION)]
-
-    '''
-
+    plt.imshow(map_image, extent=[-120, 0, 5, 65])
     plt.xlim(-120, 0)
-    plt.ylim(0, 100)
+    plt.ylim(5, 65)
     plt.ylabel("latitude")
     plt.xlabel("longitude")
 
@@ -287,4 +278,6 @@ if not config.PRETRAINED:
     np.save('trained_weights.npy', table)
 else:
     table = np.load('trained_weights.npy').item()
+
+map_image = plt.imread('map.PNG')
 predictAndEval(worldmap, test_df, table)

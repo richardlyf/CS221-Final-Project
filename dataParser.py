@@ -135,6 +135,8 @@ if __name__ == "__main__":
     t0_lat, t0_long = dataFile.getLandingLatAndLong()
     x, y = getUSCoastline()
 
+    map_image = plt.imread('map.PNG')
+    plt.imshow(map_image, extent=[-120, 0, 5, 65])
     plt.ylabel("latitude")
     plt.xlabel("longitude")
     # Plots all coords blue, then first landing coords green, then US coastliner red
