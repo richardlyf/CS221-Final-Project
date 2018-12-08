@@ -11,6 +11,7 @@ import random
 import scipy
 import scipy.stats as st
 import matplotlib.pyplot as plt
+import math
 
 '''
 Takes in the training data of each hurricane and computes returns the probability table
@@ -116,6 +117,9 @@ def predictAndEval(worldMap, dataFile, p_table):
         for i in range(config.PAST_VISION, len(hurricane) - config.FUTURE_VISION):
             particle_sum_error = 0
 
+            minLost = math.inf
+            minLostPrediction = []
+
             # For each particle at this time step
             for particle in range(config.PARTICLE_AMOUNT):
                 #Simulate particles as hurricanes to more robustly evaluate Bayes net
@@ -157,11 +161,16 @@ def predictAndEval(worldMap, dataFile, p_table):
                 # Use the list of predicted_points given prior to calculate particle error
                 target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
                 if len(predicted_points) != len(target_points): continue
-                particle_sum_error += calculateError(predicted_points, target_points)
+                error = calculateError(predicted_points, target_points)
+                particle_sum_error += error
 
-                # Display the predicted path if VISUAL flag is True, per path and particle
-                if config.VISUAL:
-                    displayPrediction(hurricane, i, predicted_points)
+                if error < minLost:
+                    minLost = error
+                    minLostPrediction = predicted_points
+
+            # Display the predicted path if VISUAL flag is True, per path and particle
+            if config.VISUAL:
+                displayPrediction(hurricane, i, minLostPrediction)
 
             #Add the particles' average error to total error
             total_error += particle_sum_error
