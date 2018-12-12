@@ -7,11 +7,6 @@ import numpy as np
 import pandas as pd
 import sys
 
-choice = input("Are you sure you want to repartition data? Doing so will override the past partitioned files. (y/n)")
-if choice != 'y':
-    print("Exiting...")
-    sys.exit()
-
 fileName = "./data/atlantic.csv"
 dataFile = processCSVFile(fileName)
 partition = [0.6, 0.2, 0.2]
@@ -52,8 +47,13 @@ print("Length of training data: " + str(len(train_row_idx)))
 print("Length of validation data: " + str(len(valid_row_idx)))
 print("Length of test data: " + str(len(test_row_idx)))
 
+choice = input("Are you sure you want to repartition data? Doing so will override the past partitioned files. (y/n)")
+if choice != 'y':
+    print("Exiting...")
+    sys.exit()
+
 # Save data to CSV
-#headerNames = ','.join(dataFile.getNames())
-#np.savetxt('train.csv', train, fmt='%s', delimiter=',', header=headerNames, comments='')
-#np.savetxt('validate.csv', validate, fmt='%s', delimiter=',', header=headerNames, comments='')
-#np.savetxt('test.csv', test, fmt='%s', delimiter=',', header=headerNames, comments='')
+headerNames = ','.join(dataFile.getNames())
+np.savetxt('train.csv', train, fmt='%s', delimiter=',', header=headerNames, comments='')
+np.savetxt('validate.csv', validate, fmt='%s', delimiter=',', header=headerNames, comments='')
+np.savetxt('test.csv', test, fmt='%s', delimiter=',', header=headerNames, comments='')

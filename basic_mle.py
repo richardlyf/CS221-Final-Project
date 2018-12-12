@@ -115,77 +115,95 @@ def predictAndEval(worldMap, dataFile, p_table):
             continue
         # Look at n PAST_VISION points and make a prediction about the next FUTURE_VISION point(s)
         for i in range(config.PAST_VISION, len(hurricane) - config.FUTURE_VISION):
-            particle_sum_error = 0
 
-            minLost = math.inf
-            minLostPrediction = []
-
-            # For each particle at this time step
-            for particle in range(config.PARTICLE_AMOUNT):
-                #Simulate particles as hurricanes to more robustly evaluate Bayes net
-
-                predicted_points = []
-
-                # Form the prior
-                prior_key = tuple([(worldmap.latToRow(hurricane[n][0]), worldmap.longToCol(hurricane[n][1])) for n in range(i - config.PAST_VISION, i)])
-                # Predict FUTURE_VISION points given a prior
-                for shift in range(config.FUTURE_VISION):
-                    # Pick next potential point from the probability distribution
-                    evidence = p_table[prior_key]
-
-                    #If haven't seen before, use Laplace to crudely estimate it
-                    if len(evidence) == 0:
-                        if not config.USE_LAPLACE:
-                            prediction_count -= 1
-                            break
-                        #We have nothing for the p_table entry, so we should add
-                        #Laplace right away to calculate next point.  Default is a linear
-                        #predictor.
-
-                        #Linear predictor for extrapolating from at least 2 prior key points
-                        assert(len(prior_key) >= 2)
-                        curr_key = (2*prior_key[-1][0] - prior_key[-2][0], 2*prior_key[-1][1] - prior_key[-2][1])
-                        gaussianLaplacian(p_table, prior_key, curr_key)
-                        #Normalize Laplacian
-                        evidence_counts = p_table[prior_key]
-                        total = sum(evidence_counts.values())
-                        p_table[prior_key] = {key : value / total for key, value in evidence_counts.items()}
-
-                    prediction = weightedRandomChoice(evidence)
-                    predicted_points.append(prediction)
-                    # Update prior
-                    _new_prior = list(prior_key)[1:]
-                    _new_prior.append(prediction)
-                    prior_key = tuple(_new_prior)
-
-                # Use the list of predicted_points given prior to calculate particle error
-                target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(i, i + config.FUTURE_VISION)]
-                if len(predicted_points) != len(target_points): continue
-                error = calculateError(predicted_points, target_points)
-                particle_sum_error += error
-
-                if error < minLost:
-                    minLost = error
-                    minLostPrediction = predicted_points
+            # Sample particles
+            particle_sum_error, minLostPrediction, prediction_count = sampleParticles(p_table, hurricane, prediction_count, i)
+            total_error += particle_sum_error
 
             # Display the predicted path if VISUAL flag is True, per path and particle
             if config.VISUAL:
                 displayPrediction(hurricane, i, minLostPrediction)
 
-            #Add the particles' average error to total error
-            total_error += particle_sum_error
-
         if prediction_count == 0:
             continue
 
+        # Report result for each hurricane
         total_num_predictions += prediction_count
         avg_hurricane_error = total_error / prediction_count
         hurricane_errors.append(avg_hurricane_error)
         print ("Hurricane ID " + key + " overall error per prediction is " + str(avg_hurricane_error))
 
+    # Report result for all hurricanes
     total_avg_error = sum(hurricane_errors) / len(hurricane_errors) / config.FUTURE_VISION
     print ("Overall error per prediction averaged across " + str(len(hurricane_errors)) + " hurricanes and "
             + str(total_num_predictions) + " predictions: " + str(total_avg_error))
+
+'''
+Samples PARTICLE_AMOUNT of particles with the given prior and predicts future points
+Takes in the p_table, the current hurricane, prediction_count, and curVision, which is where we start the prediction in the hurricane
+Returns the total error of all particles and minLostPrediction, a list of predicted points that's closest to the actual, and prediction_count
+'''
+def sampleParticles(p_table, hurricane, prediction_count, curVision):
+    particle_sum_error = 0
+    minLostPrediction = []
+    minLost = math.inf
+    # For each particle at this time step
+    for particle in range(config.PARTICLE_AMOUNT):
+        #Simulate particles as hurricanes to more robustly evaluate Bayes net
+        predicted_points = []
+
+        # Form the prior
+        prior_key = tuple([(worldmap.latToRow(hurricane[n][0]), worldmap.longToCol(hurricane[n][1])) for n in range(curVision - config.PAST_VISION, curVision)])
+        # Predict FUTURE_VISION points given a prior
+        for shift in range(config.FUTURE_VISION):
+            # Pick next potential point from the probability distribution
+            evidence = p_table[prior_key]
+
+            #If haven't seen before, use Laplace to crudely estimate it
+            if len(evidence) == 0:
+                if not config.USE_LAPLACE:
+                    prediction_count -= 1
+                    break
+                estimatePrior(prior_key, p_table)
+
+            prediction = weightedRandomChoice(evidence)
+            predicted_points.append(prediction)
+            # Update prior
+            _new_prior = list(prior_key)[1:]
+            _new_prior.append(prediction)
+            prior_key = tuple(_new_prior)
+
+        # Use the list of predicted_points given prior to calculate particle error
+        target_points = [(worldmap.latToRow(hurricane[t][0]), worldmap.longToCol(hurricane[t][1])) for t in range(curVision, curVision + config.FUTURE_VISION)]
+        if len(predicted_points) != len(target_points): continue
+        error = calculateError(predicted_points, target_points)
+        particle_sum_error += error
+
+        if error < minLost:
+            minLost = error
+            minLostPrediction = predicted_points
+
+    return particle_sum_error, minLostPrediction, prediction_count
+
+'''
+If we encounter a prior we have not seen before, we can use laplace to estimate its posterior distribution, based on a linear prediction
+Takes in the prior that we have not seen and the prediction count and the p_table
+P_table is updated by reference
+Prediction_count is returned, and its value only changes it laplace is not used
+'''
+def estimatePrior(prior_key, p_table):
+    #We have nothing for the p_table entry, so we should add
+    #Laplace right away to calculate next point.  Default is a linear
+    #predictor.
+
+    #Linear predictor for extrapolating from at least 2 prior key points
+    assert(len(prior_key) >= 2)
+    curr_key = (2*prior_key[-1][0] - prior_key[-2][0], 2*prior_key[-1][1] - prior_key[-2][1])
+    gaussianLaplacian(p_table, prior_key, curr_key)
+    #Normalize Laplacian
+    evidence_counts = p_table[prior_key]
+    total = sum(evidence_counts.values())
+    p_table[prior_key] = {key : value / total for key, value in evidence_counts.items()}
 
 '''
 Takes in a list of predicted values and a list of target values
@@ -282,11 +300,16 @@ valid_df = processCSVFile(valid_fn)
 test_df = processCSVFile(test_fn)
 
 table = {}
+print("Preparing p-table...")
 if not config.PRETRAINED:
     table = train(worldmap, train_df)
-    np.save('trained_weights.npy', table)
+    if config.SAVE_TRAINED:
+        np.save('trained_weights.npy', table)
+    print("Finished training...")
 else:
     table = np.load('trained_weights.npy').item()
+    print("Loaded from pretrained weights.")
 
 map_image = plt.imread('map.PNG')
-predictAndEval(worldmap, test_df, table)
+print("Starting prediction...")
+predictAndEval(worldmap, valid_df, table)
