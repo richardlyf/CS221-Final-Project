@@ -121,7 +121,7 @@ def predictAndEval(worldMap, dataFile, p_table):
             total_error += particle_sum_error
 
             # Display the predicted path if VISUAL flag is True, per path and particle
-            if config.VISUAL:
+            if config.VISUAL and minLostPrediction != []:
                 displayPrediction(hurricane, i, minLostPrediction)
 
         if prediction_count == 0:
@@ -134,6 +134,8 @@ def predictAndEval(worldMap, dataFile, p_table):
         print ("Hurricane ID " + key + " overall error per prediction is " + str(avg_hurricane_error))
 
     # Report result for all hurricanes
+    if len(hurricane_errors) == 0:
+       raise Exception("Cannot predict any points. Make sure map scale is not 1 or laplace is set to true")
     total_avg_error = sum(hurricane_errors) / len(hurricane_errors) / config.FUTURE_VISION
     print ("Overall error per prediction averaged across " + str(len(hurricane_errors)) + " hurricanes and "
             + str(total_num_predictions) + " predictions: " + str(total_avg_error))
