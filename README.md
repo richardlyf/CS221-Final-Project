@@ -12,13 +12,13 @@ baseline.py: runs the baseline linear extrapolator
 
 config.py: configurations and hyperparameters
 
-dataParser.py: handles reading and plotting CSV file contents.
+dataParser.py: handles reading and plotting CSV file contents. Running this file directly displays all data points of the atlantic data set on the map.
 
 mle.py: body of the MLE and the MLE+Laplace
 
-partitionData.py: splits dataset into Train, Validation, and Test.
+partitionData.py: splits data set into Train, Validation, and Test.
 
-plotData.py: displays the entire atlantic dataset on the map
+plotData.py: animates the entire atlantic dataset on the map 
 
 worldmap.py: infrastructure of the world map
 
@@ -27,7 +27,9 @@ worldmap.py: infrastructure of the world map
 The following data files are partitioned from `atlantic.csv` by `partitionData.py`
 
 > test.csv
+
 > validate.csv
+
 > test.csv
 
 The data folder contains the original data files.
@@ -59,5 +61,9 @@ Configurations and Hyperparameters: open `config.py` to edit parameters
 Baseline: run `python baseline.py`
 
 
-MLE: run `python3 mle.py`
+MLE: run `python mle.py`
 
+
+dataParser: run `python dataParser.py`
+
+plotData: run `python plotData.py 0` to display atlantic data. Change arg 0 to 1 for pacific data
