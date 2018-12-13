@@ -1,5 +1,8 @@
 # CS221-Final-Project
 
+Hurricane trajectory prediction using Bayesian network
+
+CodaLab: https://worksheets.codalab.org/worksheets/0xd64b3fc9cb104e5fba332cdd8246f124/ 
 
 ## Files:
 
