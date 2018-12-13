@@ -7,7 +7,7 @@ FUTURE_VISION = 3
 PAST_VISION = 2
 
 #How much our grid is scaled relative to latitudes and longitudes (how many latitude/longitudes in a grid box)
-GRID_SIZE_SCALE = 5
+GRID_SIZE_SCALE = 1
 
 #Range from 0 to this value of latitudes
 LATITUDE_RANGE = 150
@@ -31,7 +31,7 @@ LAPLACE_LAMBDA = 0.02
 USE_LAPLACE = True
 
 #If predicted results will be displayed
-VISUAL = False
+VISUAL = True
 
 #Loads pretrained MLE probability table if True
 PRETRAINED = True
